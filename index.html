@@ -3,190 +3,303 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Oikumene - Digital ID</title>
+    <title>Oikumene - Premium Digital ID</title>
+    
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    
+    <!-- FontAwesome for Icons -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Google Fonts: Playfair Display (Elegant Serif) & Poppins (Modern Sans) -->
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;1,500&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- QRCode.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
     <style>
+        :root {
+            --navy: #0f172a;
+            --gold: #d4af37;
+            --gold-light: #fbeea1;
+        }
         body {
             font-family: 'Poppins', sans-serif;
-            /* Soft elegant background */
-            background: linear-gradient(135deg, #f0f7ff 0%, #e0f2fe 100%);
+            background: linear-gradient(135deg, #020617 0%, #0f172a 100%);
+            color: #f8fafc;
             min-height: 100vh;
+            overflow-x: hidden;
         }
-        .gold-accent {
-            color: #d4af37;
-        }
-        .gold-bg {
-            background-color: #d4af37;
-        }
-        .glass-card {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.1);
+        .font-serif-custom {
+            font-family: 'Playfair Display', serif;
         }
         
-        /* Custom notification */
+        /* Glassmorphism Classes */
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+        }
+        .glass-card {
+            background: rgba(15, 23, 42, 0.7);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+        
+        /* Accents */
+        .gold-gradient-text {
+            background: linear-gradient(to right, #bf953f, #fcf6ba, #b38728, #fbf5b7);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        .gold-border {
+            border-color: var(--gold);
+        }
+        
+        /* Animations */
+        .fade-in { animation: fadeIn 0.8s ease forwards; }
+        .slide-up { animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Custom Notification */
         #notification {
-            transition: opacity 0.3s ease, transform 0.3s ease;
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
             opacity: 0;
-            transform: translateY(-20px);
+            transform: translateY(-20px) translateX(-50%);
             pointer-events: none;
         }
         #notification.show {
             opacity: 1;
-            transform: translateY(0);
+            transform: translateY(0) translateX(-50%);
+        }
+        
+        /* Secret Confess Button Pulse */
+        .secret-heart:hover {
+            opacity: 1 !important;
+            transform: scale(1.2);
+            text-shadow: 0 0 10px rgba(239, 68, 68, 0.8);
+            transition: all 0.3s ease;
         }
     </style>
 </head>
-<body class="flex items-center justify-center p-4">
+<body class="flex items-center justify-center p-4 relative">
 
-    <!-- Notification Toast -->
-    <div id="notification" class="fixed top-5 left-1/2 transform -translate-x-1/2 bg-blue-900 text-white px-6 py-3 rounded-full shadow-lg z-50 flex items-center space-x-2">
-        <i class="fas fa-check-circle text-green-400"></i>
-        <span id="notif-text">Pesan</span>
+    <div id="notification" class="fixed top-6 left-1/2 bg-slate-800 border border-slate-600 text-white px-6 py-3 rounded-2xl shadow-2xl z-[100] flex items-center space-x-3 w-max max-w-[90vw]">
+        <i class="fas fa-info-circle text-amber-400"></i>
+        <span id="notif-text" class="text-sm font-medium">Pesan</span>
     </div>
 
     <!-- MAIN CONTAINER -->
-    <div id="main-container" class="w-full max-w-md transition-all duration-500">
-        
-        <!-- GENERATOR MODE (FORM) -->
-        <div id="generator-view" class="hidden glass-card rounded-3xl p-8 relative overflow-hidden">
-            <!-- Decorative Header -->
-            <div class="absolute top-0 left-0 w-full h-2 gold-bg"></div>
-            
+    <div id="main-container" class="w-full max-w-md w-full relative z-10">
+
+        <!-- ================= GENERATOR MODE ================= -->
+        <div id="generator-view" class="hidden glass-panel rounded-3xl p-6 sm:p-8 relative">
             <div class="text-center mb-8">
-                <i class="fas fa-cross text-blue-800 text-3xl mb-2"></i>
-                <h1 class="text-2xl font-bold text-blue-900 tracking-wide">Oikumene</h1>
-                <p class="text-sm text-gray-500">ID Card & QR Code Generator</p>
+                <i class="fas fa-cross text-amber-400 text-3xl mb-3 drop-shadow-[0_0_10px_rgba(212,175,55,0.5)]"></i>
+                <h1 class="text-3xl font-bold font-serif-custom gold-gradient-text tracking-wide">Oikumene</h1>
+                <p class="text-xs text-slate-400 mt-1 uppercase tracking-widest">ID Card Generator</p>
             </div>
 
-            <form id="qr-form" class="space-y-5">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Nama Lengkap</label>
-                    <div class="relative">
-                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <i class="fas fa-user text-gray-400"></i>
-                        </div>
-                        <input type="text" id="input-nama" required
-                            class="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                            placeholder="Contoh: Yohanes">
+            <form id="qr-form" class="space-y-4">
+                <!-- Group 1: Basic Info -->
+                <div class="space-y-4 bg-slate-800/30 p-4 rounded-2xl border border-slate-700/50">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">Nama Lengkap</label>
+                        <input type="text" id="input-n" required class="w-full px-4 py-2.5 bg-slate-900/50 border border-slate-600 rounded-xl text-white focus:outline-none focus:border-amber-400 text-sm transition-colors" placeholder="Contoh: Yohanes">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">Nomor WA Admin / Pengurus</label>
+                        <input type="text" id="input-w" required class="w-full px-4 py-2.5 bg-slate-900/50 border border-slate-600 rounded-xl text-white focus:outline-none focus:border-amber-400 text-sm transition-colors" placeholder="Contoh: 081234567890">
                     </div>
                 </div>
 
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Lagu Favorit</label>
-                    <div class="relative">
-                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <i class="fas fa-music text-gray-400"></i>
+                <!-- Group 2: Favorites -->
+                <div class="space-y-4 bg-slate-800/30 p-4 rounded-2xl border border-slate-700/50">
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-300 mb-1">Makanan Favorit</label>
+                            <input type="text" id="input-f" required class="w-full px-3 py-2.5 bg-slate-900/50 border border-slate-600 rounded-xl text-white focus:outline-none focus:border-amber-400 text-sm transition-colors" placeholder="Nasi Goreng">
                         </div>
-                        <input type="text" id="input-lagu" required
-                            class="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                            placeholder="Contoh: Amazing Grace">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-300 mb-1">Minuman Favorit</label>
+                            <input type="text" id="input-d" required class="w-full px-3 py-2.5 bg-slate-900/50 border border-slate-600 rounded-xl text-white focus:outline-none focus:border-amber-400 text-sm transition-colors" placeholder="Es Teh">
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">Judul Lagu Rohani Favorit</label>
+                        <input type="text" id="input-s" required class="w-full px-4 py-2.5 bg-slate-900/50 border border-slate-600 rounded-xl text-white focus:outline-none focus:border-amber-400 text-sm transition-colors" placeholder="Contoh: Amazing Grace">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">Link Audio MP3 Lagu <span class="text-slate-500 font-normal">(Gunakan catbox.moe)</span></label>
+                        <input type="url" id="input-a" class="w-full px-4 py-2.5 bg-slate-900/50 border border-slate-600 rounded-xl text-white focus:outline-none focus:border-amber-400 text-sm transition-colors" placeholder="https://files.catbox.moe/xxxxxx.mp3">
                     </div>
                 </div>
 
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Ayat Emas / Quotes</label>
-                    <div class="relative">
-                        <div class="absolute top-3 left-3 pointer-events-none">
-                            <i class="fas fa-book-bible text-gray-400"></i>
-                        </div>
-                        <textarea id="input-ayat" required rows="3"
-                            class="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                            placeholder="Contoh: Yohanes 3:16 - Karena begitu besar kasih Allah..."></textarea>
-                    </div>
+                <!-- Group 3: Verse -->
+                <div class="bg-slate-800/30 p-4 rounded-2xl border border-slate-700/50">
+                    <label class="block text-xs font-semibold text-slate-300 mb-1">Ayat Emas / Quotes</label>
+                    <textarea id="input-v" required rows="3" class="w-full px-4 py-2.5 bg-slate-900/50 border border-slate-600 rounded-xl text-white focus:outline-none focus:border-amber-400 text-sm transition-colors resize-none" placeholder="Yohanes 3:16 - Karena begitu besar kasih Allah..."></textarea>
                 </div>
 
-                <button type="submit" 
-                    class="w-full bg-blue-900 hover:bg-blue-800 text-white font-semibold py-3 px-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-0.5 flex justify-center items-center space-x-2">
+                <button type="submit" class="w-full bg-gradient-to-r from-yellow-600 to-amber-500 hover:from-yellow-500 hover:to-amber-400 text-slate-900 font-bold py-3.5 px-4 rounded-xl shadow-[0_0_15px_rgba(212,175,55,0.4)] transition-all transform hover:-translate-y-1 flex justify-center items-center space-x-2">
                     <i class="fas fa-qrcode"></i>
                     <span>Buat QR Code</span>
                 </button>
             </form>
 
             <!-- QR Result Area -->
-            <div id="qr-result" class="hidden mt-8 pt-6 border-t border-gray-200 flex flex-col items-center">
-                <h3 class="text-sm font-semibold text-gray-700 mb-4">Hasil QR Code</h3>
+            <div id="qr-result" class="hidden mt-8 pt-6 border-t border-slate-700 flex flex-col items-center slide-up">
+                <h3 class="text-sm font-semibold text-amber-400 mb-4 uppercase tracking-wider">Hasil QR Code</h3>
                 
-                <div class="bg-white p-3 rounded-xl shadow-md border border-gray-100">
+                <div class="bg-white p-4 rounded-2xl shadow-xl shadow-amber-900/20">
                     <div id="qrcode-container" class="flex justify-center"></div>
                 </div>
                 
-                <p class="text-xs text-gray-500 mt-3 text-center mb-4">Screenshot atau simpan QR Code ini untuk dicetak di ID Card fisik.</p>
+                <p class="text-[11px] text-slate-400 mt-4 text-center mb-4 px-4">Scan kode ini atau sebarkan link di bawah. Cocok dipasang di ID Card fisik.</p>
 
-                <div class="w-full relative">
-                    <input type="text" id="generated-url" readonly 
-                        class="w-full pr-12 pl-3 py-2 text-xs bg-gray-50 border border-gray-200 rounded-lg text-gray-600 focus:outline-none">
-                    <button type="button" id="copy-btn"
-                        class="absolute right-0 top-0 bottom-0 px-3 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-r-lg transition-colors border border-blue-200"
-                        title="Salin Link">
+                <div class="w-full relative group">
+                    <input type="text" id="generated-url" readonly class="w-full pr-12 pl-4 py-3 text-xs bg-slate-900 border border-slate-600 rounded-xl text-slate-300 focus:outline-none focus:border-amber-500">
+                    <button type="button" id="copy-btn" class="absolute right-1 top-1 bottom-1 px-4 bg-slate-800 hover:bg-slate-700 text-amber-400 rounded-lg transition-colors border border-slate-600" title="Salin Link">
                         <i class="fas fa-copy"></i>
                     </button>
                 </div>
                 
-                <a href="#" id="preview-btn" target="_blank" class="mt-4 text-sm text-blue-600 hover:text-blue-800 font-medium underline underline-offset-2">
-                    Preview Profil Digital
+                <a href="#" id="preview-btn" target="_blank" class="mt-5 text-sm text-amber-400 hover:text-amber-300 font-medium underline underline-offset-4 flex items-center gap-2">
+                    <span>Lihat Preview</span> <i class="fas fa-external-link-alt text-xs"></i>
                 </a>
             </div>
         </div>
 
-        <!-- VIEW MODE (DIGITAL ID CARD) -->
-        <div id="id-card-view" class="hidden relative rounded-3xl overflow-hidden glass-card shadow-2xl">
+        <!-- ================= OVERLAY COVER ================= -->
+        <!-- Solves browser autoplay policy by requiring a click -->
+        <div id="interactive-overlay" class="hidden fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-950/90 backdrop-blur-xl transition-opacity duration-700">
+            <div class="text-center p-8 slide-up cursor-pointer group" id="open-card-btn">
+                <div class="w-24 h-24 rounded-full border-2 border-amber-400/30 flex items-center justify-center mx-auto mb-6 group-hover:bg-amber-400/10 transition-colors duration-500 relative">
+                    <div class="absolute inset-0 rounded-full border border-amber-400 animate-ping opacity-20"></div>
+                    <i class="fas fa-fingerprint text-4xl text-amber-400 drop-shadow-[0_0_8px_rgba(212,175,55,0.8)]"></i>
+                </div>
+                <h2 class="text-2xl font-serif-custom gold-gradient-text font-bold mb-2">Kartu Digital Oikumene</h2>
+                <p class="text-slate-400 text-sm mb-6 flex items-center justify-center gap-2">
+                    <i class="fas fa-hand-pointer animate-bounce"></i> Ketuk untuk membuka profil
+                </p>
+                <div class="text-xs text-slate-500 flex items-center justify-center gap-2 bg-slate-900/50 py-2 px-4 rounded-full border border-slate-800">
+                    <i class="fas fa-volume-up"></i> Pastikan volume suara menyala
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= VIEW MODE (DIGITAL ID) ================= -->
+        <div id="id-card-view" class="hidden relative rounded-[2rem] overflow-hidden glass-card">
             
-            <!-- Top Pattern/Header Background -->
-            <div class="h-32 bg-blue-900 relative overflow-hidden flex items-center justify-center">
-                <!-- Subtle pattern/overlay -->
-                <div class="absolute inset-0 opacity-20" style="background-image: radial-gradient(circle at 2px 2px, white 1px, transparent 0); background-size: 20px 20px;"></div>
-                <div class="z-10 text-center text-white mt-[-20px]">
-                    <h2 class="text-xl font-bold tracking-widest uppercase">Oikumene</h2>
-                    <p class="text-xs font-light text-blue-200 tracking-wide uppercase mt-1">Persekutuan Siswa Kristen</p>
+            <!-- Audio Element (Hidden) -->
+            <audio id="bg-audio" loop></audio>
+
+            <!-- Decorative Header -->
+            <div class="h-32 relative overflow-hidden flex items-center justify-center bg-slate-900 border-b border-amber-400/20">
+                <!-- Golden mesh pattern overlay -->
+                <div class="absolute inset-0 opacity-10" style="background-image: repeating-linear-gradient(45deg, #d4af37 0, #d4af37 1px, transparent 0, transparent 50%); background-size: 10px 10px;"></div>
+                <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-amber-400 to-transparent opacity-50"></div>
+                
+                <div class="z-10 text-center mt-[-10px]">
+                    <h2 class="text-2xl font-bold font-serif-custom tracking-widest text-white drop-shadow-md">OIKUMENE</h2>
+                    <p class="text-[10px] font-light text-amber-400/80 tracking-[0.3em] uppercase mt-1">Persekutuan Siswa Kristen</p>
                 </div>
             </div>
 
-            <!-- Profile Content Area -->
-            <div class="px-8 pb-8 pt-12 relative bg-white">
+            <!-- Main Content Area -->
+            <div class="px-6 pb-6 pt-14 relative">
                 
-                <!-- Floating Avatar/Icon -->
-                <div class="absolute -top-12 left-1/2 transform -translate-x-1/2 bg-white p-2 rounded-full shadow-lg border-4 border-blue-50">
-                    <div class="w-20 h-20 bg-gradient-to-tr from-blue-100 to-blue-50 rounded-full flex items-center justify-center text-blue-900">
-                        <i class="fas fa-dove text-3xl"></i>
+                <!-- Floating Icon -->
+                <div class="absolute -top-12 left-1/2 transform -translate-x-1/2">
+                    <div class="w-24 h-24 bg-slate-900 rounded-full flex items-center justify-center border-[3px] border-amber-400 shadow-[0_0_20px_rgba(212,175,55,0.3)] relative overflow-hidden">
+                        <div class="absolute inset-0 bg-gradient-to-br from-amber-400/20 to-transparent"></div>
+                        <i class="fas fa-dove text-3xl text-amber-400"></i>
                     </div>
                 </div>
 
-                <!-- Data Fields -->
-                <div class="text-center mt-2">
-                    <h1 id="view-nama" class="text-2xl font-bold text-gray-800">Nama Lengkap</h1>
-                    <div class="w-12 h-1 gold-bg mx-auto mt-3 rounded-full"></div>
+                <!-- Name Section -->
+                <div class="text-center mt-2 mb-8 slide-up" style="animation-delay: 0.1s;">
+                    <h1 id="view-n" class="text-2xl font-bold text-white tracking-wide">Nama Lengkap</h1>
+                    <div class="w-16 h-[2px] bg-gradient-to-r from-transparent via-amber-400 to-transparent mx-auto mt-3"></div>
                 </div>
 
-                <div class="mt-8 space-y-6">
+                <div class="space-y-4">
                     
-                    <!-- Lagu Favorit -->
-                    <div class="bg-blue-50 rounded-2xl p-4 border border-blue-100 relative">
-                        <div class="absolute -top-3 left-4 bg-blue-900 text-white w-6 h-6 rounded-full flex items-center justify-center shadow-sm">
-                            <i class="fas fa-music text-xs"></i>
-                        </div>
-                        <p class="text-xs font-semibold text-blue-900 uppercase tracking-wider mb-1 ml-1 mt-1">Lagu Favorit</p>
-                        <p id="view-lagu" class="text-gray-700 font-medium text-sm ml-1">Judul Lagu</p>
-                    </div>
-
-                    <!-- Ayat Emas -->
-                    <div class="bg-amber-50 rounded-2xl p-4 border border-amber-100 relative">
-                        <div class="absolute -top-3 left-4 gold-bg text-white w-6 h-6 rounded-full flex items-center justify-center shadow-sm">
-                            <i class="fas fa-book-open text-xs"></i>
-                        </div>
-                        <p class="text-xs font-semibold text-amber-700 uppercase tracking-wider mb-2 ml-1 mt-1">Ayat Emas</p>
-                        <p id="view-ayat" class="text-gray-700 text-sm italic font-medium ml-1 leading-relaxed border-l-2 border-amber-300 pl-3 py-1">
+                    <!-- Verse / Quotes -->
+                    <div class="bg-slate-800/50 rounded-2xl p-5 border border-slate-700 relative slide-up" style="animation-delay: 0.2s;">
+                        <i class="fas fa-quote-left absolute top-4 left-4 text-amber-400/20 text-3xl"></i>
+                        <p id="view-v" class="text-slate-200 text-sm italic font-medium leading-relaxed relative z-10 text-center px-4">
                             "Ayat firman Tuhan akan muncul di sini."
                         </p>
                     </div>
+
+                    <!-- Details Grid -->
+                    <div class="grid grid-cols-2 gap-3 slide-up" style="animation-delay: 0.3s;">
+                        <!-- Food -->
+                        <div class="bg-slate-800/40 rounded-2xl p-4 border border-slate-700/50 flex flex-col items-center text-center">
+                            <div class="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center mb-2 text-amber-400">
+                                <i class="fas fa-utensils text-sm"></i>
+                            </div>
+                            <span class="text-[10px] text-slate-400 uppercase tracking-wider">Makanan</span>
+                            <span id="view-f" class="text-slate-200 text-sm font-medium mt-0.5">Nasi Goreng</span>
+                        </div>
+                        
+                        <!-- Drink -->
+                        <div class="bg-slate-800/40 rounded-2xl p-4 border border-slate-700/50 flex flex-col items-center text-center">
+                            <div class="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center mb-2 text-amber-400">
+                                <i class="fas fa-mug-hot text-sm"></i>
+                            </div>
+                            <span class="text-[10px] text-slate-400 uppercase tracking-wider">Minuman</span>
+                            <span id="view-d" class="text-slate-200 text-sm font-medium mt-0.5">Es Teh</span>
+                        </div>
+                    </div>
+
+                    <!-- Song -->
+                    <div class="bg-slate-800/40 rounded-2xl p-4 border border-slate-700/50 flex items-center gap-4 slide-up" style="animation-delay: 0.4s;">
+                        <div class="w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center text-amber-400 relative">
+                            <i class="fas fa-music text-sm"></i>
+                            <div class="absolute -right-1 -bottom-1 w-3 h-3 bg-green-500 rounded-full border-2 border-slate-800 animate-pulse hidden" id="audio-indicator"></div>
+                        </div>
+                        <div class="flex-1 overflow-hidden">
+                            <p class="text-[10px] text-slate-400 uppercase tracking-wider">Lagu Favorit</p>
+                            <p id="view-s" class="text-slate-200 text-sm font-medium truncate">Judul Lagu</p>
+                        </div>
+                    </div>
+                    
                 </div>
 
-                <!-- Footer Card -->
-                <div class="mt-8 text-center border-t border-gray-100 pt-4">
-                    <p class="text-[10px] text-gray-400 uppercase tracking-widest">Digital Member ID</p>
+                <!-- Action Buttons -->
+                <div class="mt-8 slide-up" style="animation-delay: 0.5s;">
+                    <a href="#" id="btn-kritik" target="_blank" class="w-full flex items-center justify-center gap-2 py-3 px-4 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl border border-slate-600 transition-colors shadow-lg text-sm font-medium">
+                        <i class="fab fa-whatsapp text-green-400 text-lg"></i>
+                        Kotak Saran & Kritik
+                    </a>
+                </div>
+
+                <!-- Footer & Secret Confess -->
+                <div class="mt-6 text-center pt-4 border-t border-slate-700/50 slide-up" style="animation-delay: 0.6s;">
+                    <p class="text-[10px] text-slate-500 uppercase tracking-widest flex justify-center items-center gap-1">
+                        Member ID <span class="mx-1">•</span> 2026
+                        <!-- Secret Confess Button -->
+                        <a href="#" id="btn-confess" target="_blank" title="Secret Confess" class="opacity-0 cursor-pointer ml-1 text-red-500 secret-heart inline-block p-1">
+                            <i class="fas fa-heart"></i>
+                        </a>
+                    </p>
                 </div>
             </div>
         </div>
@@ -196,102 +309,157 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             
-            // DOM Elements
+            // --- DOM Elements ---
             const generatorView = document.getElementById('generator-view');
             const idCardView = document.getElementById('id-card-view');
+            const interactiveOverlay = document.getElementById('interactive-overlay');
+            const openCardBtn = document.getElementById('open-card-btn');
+            
             const form = document.getElementById('qr-form');
             const qrResultDiv = document.getElementById('qr-result');
             const qrcodeContainer = document.getElementById('qrcode-container');
             const generatedUrlInput = document.getElementById('generated-url');
-            const copyBtn = document.getElementById('copy-btn');
-            const previewBtn = document.getElementById('preview-btn');
+            
             const notif = document.getElementById('notification');
             const notifText = document.getElementById('notif-text');
+            const audioEl = document.getElementById('bg-audio');
+            const audioIndicator = document.getElementById('audio-indicator');
 
-            // View Mode Elements
-            const viewNama = document.getElementById('view-nama');
-            const viewLagu = document.getElementById('view-lagu');
-            const viewAyat = document.getElementById('view-ayat');
-
-            // Helper: Show Notification
+            // --- Utility Functions ---
             function showNotification(message) {
                 notifText.innerText = message;
                 notif.classList.add('show');
-                setTimeout(() => {
-                    notif.classList.remove('show');
-                }, 3000);
+                setTimeout(() => notif.classList.remove('show'), 3000);
             }
 
-            // 1. ROUTING LOGIC: Check for URL Parameters
+            // Format phone number to international standard (62)
+            function formatWANumber(number) {
+                let formatted = number.replace(/\D/g, ''); // Remove non-digits
+                if (formatted.startsWith('0')) {
+                    formatted = '62' + formatted.substring(1);
+                }
+                return formatted;
+            }
+
+            // --- 1. ROUTING LOGIC ---
+            // Use short parameter names to keep URL compact for QR Code
+            // n: Nama, v: Verse, s: Song, a: Audio, f: Food, d: Drink, w: WA
             const urlParams = new URLSearchParams(window.location.search);
-            const nama = urlParams.get('nama');
-            const lagu = urlParams.get('lagu');
-            const ayat = urlParams.get('ayat');
-
-            if (nama || lagu || ayat) {
-                // HAS PARAMS -> SHOW VIEW MODE (DIGITAL ID)
+            
+            // If at least name and WA are present, assume View Mode
+            if (urlParams.has('n') && urlParams.has('w')) {
+                // HAS PARAMS -> PREPARE VIEW MODE
                 generatorView.classList.add('hidden');
-                idCardView.classList.remove('hidden');
+                interactiveOverlay.classList.remove('hidden'); // Show cover screen
+                
+                // Extract data
+                const pName = urlParams.get('n') || 'Tanpa Nama';
+                const pVerse = urlParams.get('v') || 'Tuhan memberkati.';
+                const pSong = urlParams.get('s') || '-';
+                const pAudio = urlParams.get('a') || '';
+                const pFood = urlParams.get('f') || '-';
+                const pDrink = urlParams.get('d') || '-';
+                const pWA = formatWANumber(urlParams.get('w') || '');
 
-                // Populate data (use fallback if empty)
-                viewNama.innerText = nama || 'Nama Tidak Tersedia';
-                viewLagu.innerText = lagu || '-';
-                viewAyat.innerText = ayat ? `"${ayat}"` : '-';
+                // Populate UI
+                document.getElementById('view-n').innerText = pName;
+                document.getElementById('view-v').innerText = `"${pVerse}"`;
+                document.getElementById('view-s').innerText = pSong;
+                document.getElementById('view-f').innerText = pFood;
+                document.getElementById('view-d').innerText = pDrink;
+
+                // Setup WhatsApp Links
+                const kritikMsg = encodeURIComponent(`Halo Kak Admin, saya ingin menyampaikan kritik/saran terkait kegiatan Oikumene: \n\n`);
+                document.getElementById('btn-kritik').href = `https://wa.me/${pWA}?text=${kritikMsg}`;
+
+                const confessMsg = encodeURIComponent(`Halo... ini rahasia ya. Saya mau confess: \n\n`);
+                document.getElementById('btn-confess').href = `https://wa.me/${pWA}?text=${confessMsg}`;
+
+                // --- OVERLAY CLICK LOGIC ---
+                openCardBtn.addEventListener('click', () => {
+                    // Hide overlay, show card
+                    interactiveOverlay.style.opacity = '0';
+                    setTimeout(() => {
+                        interactiveOverlay.classList.add('hidden');
+                        idCardView.classList.remove('hidden');
+                        
+                        // Play Audio if link exists
+                        if (pAudio) {
+                            audioEl.src = pAudio;
+                            audioEl.play().then(() => {
+                                audioIndicator.classList.remove('hidden');
+                            }).catch(err => {
+                                console.log("Autoplay ditolak atau link audio rusak:", err);
+                                showNotification("Gagal memutar audio otomatis.");
+                            });
+                        }
+                    }, 500); // Wait for fade out transition
+                });
+
             } else {
                 // NO PARAMS -> SHOW GENERATOR MODE
                 generatorView.classList.remove('hidden');
-                idCardView.classList.add('hidden');
             }
 
-            // 2. GENERATOR LOGIC
+            // --- STREAMING_CHUNK:Implementing Generator Logic ---
+            // --- 2. GENERATOR LOGIC ---
             let qrcode = null;
 
             form.addEventListener('submit', (e) => {
                 e.preventDefault();
 
-                // Get input values
-                const inputNama = document.getElementById('input-nama').value.trim();
-                const inputLagu = document.getElementById('input-lagu').value.trim();
-                const inputAyat = document.getElementById('input-ayat').value.trim();
+                // Get values
+                const vName = document.getElementById('input-n').value.trim();
+                const vWA = document.getElementById('input-w').value.trim();
+                const vFood = document.getElementById('input-f').value.trim();
+                const vDrink = document.getElementById('input-d').value.trim();
+                const vSong = document.getElementById('input-s').value.trim();
+                const vAudio = document.getElementById('input-a').value.trim();
+                const vVerse = document.getElementById('input-v').value.trim();
 
-                // Construct base URL (without existing parameters)
+                // Build new URL
                 const baseUrl = window.location.origin + window.location.pathname;
-                
-                // Construct new parameters
                 const newParams = new URLSearchParams();
-                newParams.set('nama', inputNama);
-                newParams.set('lagu', inputLagu);
-                newParams.set('ayat', inputAyat);
+                
+                newParams.set('n', vName);
+                newParams.set('w', vWA);
+                newParams.set('f', vFood);
+                newParams.set('d', vDrink);
+                newParams.set('s', vSong);
+                newParams.set('v', vVerse);
+                if(vAudio) newParams.set('a', vAudio);
 
                 const finalUrl = `${baseUrl}?${newParams.toString()}`;
 
-                // Clear previous QR code if exists
+                // Generate QR
                 qrcodeContainer.innerHTML = '';
-
-                // Generate new QR Code
                 qrcode = new QRCode(qrcodeContainer, {
                     text: finalUrl,
-                    width: 180,
-                    height: 180,
-                    colorDark : "#1e3a8a", // Tailwind blue-900
+                    width: 200,
+                    height: 200,
+                    colorDark : "#0f172a", // Navy
                     colorLight : "#ffffff",
-                    correctLevel : QRCode.CorrectLevel.L
+                    correctLevel : QRCode.CorrectLevel.L // Low error correction = simpler pattern for long URLs
                 });
 
-                // Display Result UI
+                // Show result UI
                 generatedUrlInput.value = finalUrl;
-                previewBtn.href = finalUrl;
+                document.getElementById('preview-btn').href = finalUrl;
                 qrResultDiv.classList.remove('hidden');
 
                 showNotification("QR Code berhasil dibuat!");
+                
+                // Scroll to QR
+                setTimeout(() => {
+                    qrResultDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                }, 100);
             });
 
-            // 3. COPY LINK LOGIC
-            copyBtn.addEventListener('click', () => {
+            // --- 3. COPY LINK LOGIC ---
+            document.getElementById('copy-btn').addEventListener('click', () => {
                 const url = generatedUrlInput.value;
                 if (!url) return;
 
-                // Fallback for document.execCommand
                 const textArea = document.createElement("textarea");
                 textArea.value = url;
                 document.body.appendChild(textArea);
